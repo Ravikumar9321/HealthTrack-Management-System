@@ -36,7 +36,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "https://health-track-management-system.vercel.app")
+@CrossOrigin(origins = "https://healthtrack-management-system-5.onrender.com")
 public class AuthController {
 
     private final UserRepository repository;
