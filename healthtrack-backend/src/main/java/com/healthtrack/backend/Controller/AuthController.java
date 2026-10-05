@@ -59,7 +59,7 @@ public class AuthController {
                      .body(new AuthResponse("User already exists", null));
          }
 
-         String role = request.role() == null ? "ROLE_USER" : request.role();
+String role = request.role() == null ? "ROLE_USER" : "ROLE_" + request.role().toUpperCase();
 
          // Validate doctor/patient before saving UserInfo
          if ("ROLE_DOCTOR".equals(role)) {
