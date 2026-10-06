@@ -3,6 +3,8 @@ package com.healthtrack.backend.ServiceTests;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -18,9 +20,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 
 import com.healthtrack.backend.DAO.DoctorDAO;
+import com.healthtrack.backend.DTO.DoctorRequest;
 import com.healthtrack.backend.DTO.ResponseStructure;
 import com.healthtrack.backend.Entity.Doctor;
 import com.healthtrack.backend.Exception.ResourceNotFoundException;
@@ -36,27 +40,48 @@ public class DoctorServiceTest {
 	
 
 	@Nested
-	class CreateTests {
-		@Test
-		 void shouldRegisterDoctorSuccessfully() {
-			Doctor doctor = new Doctor();
-			doctor.setId(1);
-			when(doctordao.registerDoctor(doctor)).thenReturn(doctor);
-			ResponseEntity<ResponseStructure<Doctor>> responseEntity = service.registerDoctor(doctor);
-			Doctor data = responseEntity.getBody().getData();
-			assertEquals(1, data.getId());
-			verify(doctordao, times(1)).registerDoctor(doctor);
-		}
+	class CreateDoctorTests {
 
-		@Test
-		 void shouldThrowNullPointerExecptionWhenSaveFails() {
-			Doctor doctor = new Doctor();
-			doctor.setId(99);
-			when(doctordao.registerDoctor(doctor)).thenReturn(null);
-			assertThrows(NullPointerException.class, () -> service.registerDoctor(doctor));
-			verify(doctordao, times(1)).registerDoctor(doctor);
-		}
+	    @Test
+	    void shouldRegisterDoctorSuccessfully() {
+	        DoctorRequest request = new DoctorRequest("Dr. Strange", "strange@gmail.com", "Cardiology", "strange123", null);
+
+	        Doctor doctor = new Doctor();
+	        doctor.setId(1);
+	        doctor.setName("Dr. Strange");
+	        doctor.setEmail("strange@gmail.com");
+	        doctor.setSpecialization("Cardiology");
+
+	        when(doctordao.findDoctorByEmail(request.email())).thenReturn(Optional.empty());
+	        when(doctordao.registerDoctor(any(Doctor.class))).thenReturn(doctor);
+
+	        ResponseEntity<ResponseStructure<Doctor>> responseEntity = service.registerDoctor(request);
+
+	        Doctor data = responseEntity.getBody().getData();
+	        assertEquals(1, data.getId());
+	        assertEquals("Dr. Strange", data.getName());
+	        verify(doctordao, times(1)).registerDoctor(any(Doctor.class));
+	    }
+
+	    @Test
+	    void shouldThrowIllegalArgumentExceptionWhenEmailMissing() {
+	        DoctorRequest request = new DoctorRequest("Dr. Strange", null, "Cardiology", "strange123", null);
+
+	        assertThrows(IllegalArgumentException.class, () -> service.registerDoctor(request));
+	        verify(doctordao, never()).registerDoctor(any(Doctor.class));
+	    }
+
+	    @Test
+	    void shouldThrowDataIntegrityViolationExceptionWhenEmailExists() {
+	        DoctorRequest request = new DoctorRequest("Dr. Strange", "strange@gmail.com", "Cardiology", "strange123", null);
+
+	        when(doctordao.findDoctorByEmail(request.email())).thenReturn(Optional.of(new Doctor()));
+
+	        assertThrows(DataIntegrityViolationException.class, () -> service.registerDoctor(request));
+	        verify(doctordao, never()).registerDoctor(any(Doctor.class));
+	    }
 	}
+
 
 	@Nested
 	class ReadTests {

@@ -3,16 +3,21 @@ package com.healthtrack.backend.Service;
 import java.util.List;
 
 
+
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.healthtrack.backend.DAO.PatientDAO;
+import com.healthtrack.backend.DTO.PatientRequest;
 import com.healthtrack.backend.DTO.ResponseStructure;
 import com.healthtrack.backend.Entity.Patient;
+import com.healthtrack.backend.Entity.UserInfo;
 import com.healthtrack.backend.Exception.ResourceNotFoundException;
+import com.healthtrack.backend.Repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -21,6 +26,8 @@ import lombok.RequiredArgsConstructor;
 public class PatientService {
 
     private final PatientDAO patientdao;
+    private final UserRepository repository;
+    private final PasswordEncoder passwordEncoder;
 
     private <T> ResponseEntity<ResponseStructure<T>> buildResponse(HttpStatus status,
                                                                    String message,
@@ -32,14 +39,28 @@ public class PatientService {
         return ResponseEntity.status(status).body(response);
     }
     @Transactional
-    public ResponseEntity<ResponseStructure<Patient>> registerPatient(Patient patient) {
-    	if (patient.getEmail() == null || patient.getEmail().isBlank()) {
+    public ResponseEntity<ResponseStructure<Patient>> registerPatient( PatientRequest request) {
+    	if (request.email() == null || request.email().isBlank()) {
     	    throw new IllegalArgumentException("Email is required for patient registration");
     	}
-    	if(patientdao.findPatientByEmail(patient.getEmail()).isPresent())
+    	if(patientdao.findPatientByEmail(request.email()).isPresent())
     		throw new DataIntegrityViolationException("Email already exists");
     	
-        Patient savedPatient = patientdao.registerPatient(patient);
+    	UserInfo userInfo = new UserInfo();
+		userInfo.setEmail(request.email());
+		userInfo.setPassword(passwordEncoder.encode(request.password()));
+		userInfo.setRole("ROLE_PATIENT");    	
+	     repository.save(userInfo);
+		
+		Patient patient = new Patient();
+	    patient.setName(request.name());
+	    patient.setEmail(request.email());
+	    patient.setGender(request.gender());
+	    patient.setContact(request.contact());
+	    patient.setMedicalHistory(request.medicalHistory());
+	    
+	    Patient savedPatient = patientdao.registerPatient(patient);
+	    
         return buildResponse(HttpStatus.CREATED,
                 "Patient registered successfully: " + savedPatient.getName(),
                 savedPatient);

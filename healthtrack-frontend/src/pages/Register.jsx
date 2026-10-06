@@ -3,28 +3,39 @@ import api from "../api/api";
 import { useNavigate } from "react-router-dom";
 
 function Register() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [role, setRole] = useState(""); // doctor or patient
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    specialization: "",
+    schedule: "",
+    gender: "",
+    contact: "",
+    medicalHistory: ""
+  });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleRegister = async () => {
+    if (!role) {
+      setError("Please select Doctor or Patient");
+      return;
+    }
     setLoading(true);
     setError("");
     setSuccess("");
     try {
-      const response = await api.post("/api/auth/register", {
-        email,
-        password,
-      });
-      setSuccess(response.data.message);
-      setEmail("");
-      setPassword("");
-      setTimeout(() => navigate("/login"), 2000); // redirect after 2s
+      const endpoint = role === "doctor" ? "doctor-register" : "patient-register";
+      const response = await api.post(`/api/auth/${endpoint}`, formData);
+      setSuccess(response.data.message || "Registered successfully");
+      setTimeout(() => navigate("/"), 2000);
     } catch (error) {
       setError(error.response?.data?.message || "Registration failed");
     } finally {
@@ -36,49 +47,126 @@ function Register() {
     <div style={styles.container}>
       <div style={styles.card}>
         <h2 style={styles.title}>Create Account</h2>
-        <form onSubmit={handleRegister} style={styles.form}>
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            style={styles.input}
-            required
-          />
-          <div style={styles.passwordWrapper}>
+
+        {/* Role Selection */}
+        <div style={styles.roleButtons}>
+          <button
+            type="button"
+            style={role === "doctor" ? styles.activeButton : styles.button}
+            onClick={() => setRole("doctor")}
+          >
+            Register Doctor
+          </button>
+          <button
+            type="button"
+            style={role === "patient" ? styles.activeButton : styles.button}
+            onClick={() => setRole("patient")}
+          >
+            Register Patient
+          </button>
+        </div>
+
+        {/* Common Fields */}
+        <input
+          type="text"
+          name="name"
+          placeholder="Name"
+          value={formData.name}
+          onChange={handleChange}
+          style={styles.input}
+          required
+        />
+        <input
+          type="email"
+          name="email"
+          placeholder="Email"
+          value={formData.email}
+          onChange={handleChange}
+          style={styles.input}
+          required
+        />
+        <input
+          type="password"
+          name="password"
+          placeholder="Password"
+          value={formData.password}
+          onChange={handleChange}
+          style={styles.input}
+          required
+        />
+
+      
+        {role === "doctor" && (
+          <>
             <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              type="text"
+              name="specialization"
+              placeholder="Specialization"
+              value={formData.specialization}
+              onChange={handleChange}
               style={styles.input}
               required
             />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              style={styles.toggleBtn}
-            >
-              {showPassword ? "Hide" : "Show"}
-            </button>
-          </div>
-          <button type="submit" style={styles.button} disabled={loading}>
-            {loading ? "⏳ Registering..." : "Register"}
-          </button>
-        </form>
+            <input
+              type="text"
+              name="schedule"
+              placeholder="Schedule (e.g. Mon-Fri 09:00-17:00)"
+              value={formData.schedule}
+              onChange={handleChange}
+              style={styles.input}
+              required
+            />
+          </>
+        )}
+
+        {/* Patient-specific fields */}
+        {role === "patient" && (
+          <>
+            <input
+              type="text"
+              name="gender"
+              placeholder="Gender"
+              value={formData.gender}
+              onChange={handleChange}
+              style={styles.input}
+            />
+            <input
+              type="text"
+              name="contact"
+              placeholder="Contact (10 digits)"
+              value={formData.contact}
+              onChange={handleChange}
+              style={styles.input}
+              required
+            />
+            <textarea
+              name="medicalHistory"
+              placeholder="Medical History"
+              value={formData.medicalHistory}
+              onChange={handleChange}
+              style={styles.input}
+            />
+          </>
+        )}
+
+        <button
+          type="button"
+          style={styles.button}
+          disabled={loading}
+          onClick={handleRegister}
+        >
+          {loading ? "⏳ Registering..." : "Register"}
+        </button>
+
         {error && <p style={styles.errorMsg}>{error}</p>}
         {success && <p style={styles.successMsg}>{success}</p>}
-        <p style={styles.text}>
-          Already have an account?{" "}
-          <button onClick={() => navigate("/")} style={styles.linkButton}>
-            Login
-          </button>
-        </p>
       </div>
     </div>
   );
 }
+
 export default Register;
+
 
 const styles = {
   container: {

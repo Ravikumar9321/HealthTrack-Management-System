@@ -2,7 +2,6 @@ package com.healthtrack.backend.Controller;
 
 import java.util.List;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -28,7 +27,7 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/appointments")
 @Tag(name = "Appointment", description = "Appointment related API's")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = { "http://localhost:3000", "https://health-track-management-system.vercel.app" })
 public class AppointmentController {
 	@Autowired
 	private AppointmentService service;
@@ -61,10 +60,9 @@ public class AppointmentController {
 		return service.deleteAppointmentById(appointmentId);
 	}
 
-	// get  patient by appointmentId
+	// get patient by appointmentId
 	@GetMapping("/patients/{appointmentId}")
-	public ResponseEntity<ResponseStructure<Patient>> getPatientByAppointmentId(
-			@PathVariable Integer appointmentId) {
+	public ResponseEntity<ResponseStructure<Patient>> getPatientByAppointmentId(@PathVariable Integer appointmentId) {
 		return service.getPatientByAppointmentId(appointmentId);
 	}
 
@@ -74,10 +72,11 @@ public class AppointmentController {
 			@PathVariable Integer doctorId) {
 		return service.getAppointmentsByDoctorId(doctorId);
 	}
+
 	@GetMapping("/patient/{patientId}")
 	public ResponseEntity<ResponseStructure<List<Appointment>>> getAppointmentsByPatientId(
 			@PathVariable Integer patientId) {
 		return service.getAppointmentsByPatientId(patientId);
 	}
-	
+
 }

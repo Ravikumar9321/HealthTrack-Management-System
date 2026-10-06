@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -20,9 +22,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 
 import com.healthtrack.backend.DAO.PatientDAO;
+import com.healthtrack.backend.DTO.PatientRequest;
 import com.healthtrack.backend.DTO.ResponseStructure;
 import com.healthtrack.backend.Entity.Patient;
 import com.healthtrack.backend.Exception.ResourceNotFoundException;
@@ -36,29 +40,45 @@ public class PatientServiceTest {
 	@Mock
 	private PatientDAO patientdao;
 
-
 	@Nested
 	class CreateTests {
 
-		@Test
-		 void shouldSavePatient() {
-			Patient patient = new Patient();
-			patient.setName("Rocky");
-			when(patientdao.registerPatient(patient)).thenReturn(patient);
-			ResponseEntity<ResponseStructure<Patient>> responseEntity = service.registerPatient(patient);
-			assertEquals("Rocky", responseEntity.getBody().getData().getName());
-			verify(patientdao, times(1)).registerPatient(patient);
-		}
+	    @Test
+	    void shouldSavePatient() {
+	        PatientRequest request = new PatientRequest("Rocky", "rocky@gmail.com", "Male", "9876543210", "None", "password123");
 
-		@Test
-		 void shouldThrowNullPointerExceptionWhenSaveFails() {
-			Patient patient = new Patient();
-			when(patientdao.registerPatient(patient)).thenReturn(null);
-			assertThrows(NullPointerException.class, () -> service.registerPatient(patient));
-			verify(patientdao, times(1)).registerPatient(patient);
-		}
+	        Patient patient = new Patient();
+	        patient.setName("Rocky");
+	        patient.setEmail("rocky@gmail.com");
 
+	        when(patientdao.findPatientByEmail(request.email())).thenReturn(Optional.empty());
+	        when(patientdao.registerPatient(any(Patient.class))).thenReturn(patient);
+
+	        ResponseEntity<ResponseStructure<Patient>> responseEntity = service.registerPatient(request);
+
+	        assertEquals("Rocky", responseEntity.getBody().getData().getName());
+	        verify(patientdao, times(1)).registerPatient(any(Patient.class));
+	    }
+
+	    @Test
+	    void shouldThrowIllegalArgumentExceptionWhenEmailMissing() {
+	        PatientRequest request = new PatientRequest("Rocky", null, "Male", "9876543210", "None", "password123");
+
+	        assertThrows(IllegalArgumentException.class, () -> service.registerPatient(request));
+	        verify(patientdao,never()).registerPatient(any(Patient.class));
+	    }
+
+	    @Test
+	    void shouldThrowDataIntegrityViolationExceptionWhenEmailExists() {
+	        PatientRequest request = new PatientRequest("Rocky", "rocky@gmail.com", "Male", "9876543210", "None", "password123");
+
+	        when(patientdao.findPatientByEmail(request.email())).thenReturn(Optional.of(new Patient()));
+
+	        assertThrows(DataIntegrityViolationException.class, () -> service.registerPatient(request));
+	        verify(patientdao, never()).registerPatient(any(Patient.class));
+	    }
 	}
+
 
 	@Nested
 	class ReadTests {

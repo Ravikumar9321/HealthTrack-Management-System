@@ -17,7 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.healthtrack.backend.DTO.AuthRequest;
 import com.healthtrack.backend.DTO.AuthResponse;
+import com.healthtrack.backend.DTO.DoctorRequest;
 import com.healthtrack.backend.DTO.LoginResponse;
+import com.healthtrack.backend.DTO.PatientRequest;
 import com.healthtrack.backend.DTO.ResponseStructure;
 import com.healthtrack.backend.Entity.Doctor;
 import com.healthtrack.backend.Entity.Patient;
@@ -36,10 +38,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = {
-    "http://localhost:3000",
-    "https://health-track-management-system.vercel.app"
-})
+@CrossOrigin(origins = { "http://localhost:3000", "https://health-track-management-system.vercel.app" })
 public class AuthController {
 
     private final UserRepository repository;
@@ -59,7 +58,7 @@ public class AuthController {
                      .body(new AuthResponse("User already exists", null));
          }
 
-String role = request.role() == null ? "ROLE_USER" : "ROLE_" + request.role().toUpperCase();
+         String role = request.role() == null ? "ROLE_USER" : request.role();
 
          // Validate doctor/patient before saving UserInfo
          if ("ROLE_DOCTOR".equals(role)) {
@@ -137,8 +136,8 @@ String role = request.role() == null ? "ROLE_USER" : "ROLE_" + request.role().to
 
 
 	@PostMapping("/doctor-register")
-	public ResponseEntity<ResponseStructure<Doctor>> registerDoctor(@Valid @RequestBody Doctor doctor){
-		return doctorService.registerDoctor(doctor);
+	public ResponseEntity<ResponseStructure<Doctor>> registerDoctor(@Valid @RequestBody DoctorRequest request){
+		return doctorService.registerDoctor(request);
 	} 
 	
 	@Hidden
@@ -151,8 +150,8 @@ String role = request.role() == null ? "ROLE_USER" : "ROLE_" + request.role().to
 
 	
 	@PostMapping("/patient-register")
-	public ResponseEntity<ResponseStructure<Patient>> registerPatient(@Valid @RequestBody Patient patient){
-		return patientService.registerPatient(patient); 
+	public ResponseEntity<ResponseStructure<Patient>> registerPatient(@Valid @RequestBody PatientRequest request){
+		return patientService.registerPatient(request); 
 	}
  
 }

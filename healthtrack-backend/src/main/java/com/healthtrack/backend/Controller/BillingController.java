@@ -24,7 +24,7 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/billing")
 @Tag(name = "Billing",description = "Billing related API's")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = { "http://localhost:3000", "https://health-track-management-system.vercel.app" })
 public class BillingController {
 	@Autowired
 	private BillingService service;

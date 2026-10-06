@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/doctor")
 @Tag(name = "Doctor",description = "Doctor related API's")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = { "http://localhost:3000", "https://health-track-management-system.vercel.app" })
 @RequiredArgsConstructor
 public class DoctorController {
 	private final DoctorService service;
