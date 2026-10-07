@@ -39,32 +39,35 @@ public class PatientService {
         return ResponseEntity.status(status).body(response);
     }
     @Transactional
-    public ResponseEntity<ResponseStructure<Patient>> registerPatient( PatientRequest request) {
-    	if (request.email() == null || request.email().isBlank()) {
-    	    throw new IllegalArgumentException("Email is required for patient registration");
-    	}
-    	if(patientdao.findPatientByEmail(request.email()).isPresent())
-    		throw new DataIntegrityViolationException("Email already exists");
-    	
-    	UserInfo userInfo = new UserInfo();
-		userInfo.setEmail(request.email());
-		userInfo.setPassword(passwordEncoder.encode(request.password()));
-		userInfo.setRole("ROLE_PATIENT");    	
-	     repository.save(userInfo);
-		
-		Patient patient = new Patient();
-	    patient.setName(request.name());
-	    patient.setEmail(request.email());
-	    patient.setGender(request.gender());
-	    patient.setContact(request.contact());
-	    patient.setMedicalHistory(request.medicalHistory());
-	    
-	    Patient savedPatient = patientdao.registerPatient(patient);
-	    
-        return buildResponse(HttpStatus.CREATED,
-                "Patient registered successfully: " + savedPatient.getName(),
-                savedPatient);
+public ResponseEntity<ResponseStructure<Patient>> registerPatient(PatientRequest request) {
+    if (request.email() == null || request.email().isBlank()) {
+        throw new IllegalArgumentException("Email is required for patient registration");
     }
+
+    if (repository.findByEmail(request.email()).isPresent()) {
+        throw new DataIntegrityViolationException("Email already exists");
+    }
+
+    UserInfo userInfo = new UserInfo();
+    userInfo.setEmail(request.email());
+    userInfo.setPassword(passwordEncoder.encode(request.password()));
+    userInfo.setRole("ROLE_PATIENT");
+    repository.save(userInfo);
+
+    Patient patient = new Patient();
+    patient.setName(request.name());
+    patient.setEmail(request.email());   
+    patient.setGender(request.gender());
+    patient.setContact(request.contact());
+    patient.setMedicalHistory(request.medicalHistory());
+
+    Patient savedPatient = patientdao.registerPatient(patient);
+
+    // Return patient details only (no token, no mapping)
+    return buildResponse(HttpStatus.CREATED,
+            "Patient registered successfully: " + savedPatient.getName(),
+            savedPatient);
+}
 
     public ResponseEntity<ResponseStructure<Patient>> findPatientById(Integer patientId) {
         Patient patient = patientdao.findPatientById(patientId)
