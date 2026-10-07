@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.healthtrack.backend.DAO.DoctorDAO;
-import com.healthtrack.backend.DTO.AuthResponse;
 import com.healthtrack.backend.DTO.DoctorRequest;
 import com.healthtrack.backend.DTO.ResponseStructure;
 import com.healthtrack.backend.Entity.Doctor;
