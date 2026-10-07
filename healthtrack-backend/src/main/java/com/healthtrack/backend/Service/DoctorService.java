@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.healthtrack.backend.DAO.DoctorDAO;
+import com.healthtrack.backend.DTO.AuthResponse;
 import com.healthtrack.backend.DTO.DoctorRequest;
 import com.healthtrack.backend.DTO.ResponseStructure;
 import com.healthtrack.backend.Entity.Doctor;
@@ -36,29 +37,38 @@ public class DoctorService {
 	}
 
 	@Transactional
-	public ResponseEntity<ResponseStructure<Doctor>> registerDoctor(DoctorRequest request) {
-		
-		 if(doctordao.findDoctorByEmail(request.email()).isPresent())
-			 throw new DataIntegrityViolationException("email already exist ");
-		 
-		UserInfo userInfo = new UserInfo();
-		userInfo.setEmail(request.email());
-		userInfo.setPassword(passwordEncoder.encode(request.password()));
-		userInfo.setRole("ROLE_DOCTOR");
+public ResponseEntity<ResponseStructure<Doctor>> registerDoctor(DoctorRequest request) {
+    if (request.email() == null || request.email().isBlank()) {
+        throw new IllegalArgumentException("Email is required for doctor registration");
+    }
 
-		UserInfo savedUserInfo = userRepository.save(userInfo);
+    
+    if (userRepository.findByEmail(request.email()).isPresent()) {
+        throw new DataIntegrityViolationException("Email already exists");
+    }
 
-		Doctor doctor = new Doctor();
-		doctor.setName(request.name());
-		doctor.setSpecialization(request.specialization());
-		doctor.setEmail(request.email());
-		doctor.setSchedule(request.schedule());
-		doctor.setUserinfo(savedUserInfo);
+    
+    UserInfo userInfo = new UserInfo();
+    userInfo.setEmail(request.email());
+    userInfo.setPassword(passwordEncoder.encode(request.password()));
+    userInfo.setRole("ROLE_DOCTOR");
+    UserInfo savedUserInfo = userRepository.save(userInfo);
 
-		Doctor savedDoctor = doctordao.registerDoctor(doctor);
+    
+    Doctor doctor = new Doctor();
+    doctor.setName(request.name());
+    doctor.setSpecialization(request.specialization());
+    doctor.setEmail(request.email());
+    doctor.setSchedule(request.schedule());
+    doctor.setUserinfo(savedUserInfo); 
 
-		return buildResponse(HttpStatus.CREATED, "Registered successfully", savedDoctor);
-	}
+    Doctor savedDoctor = doctordao.registerDoctor(doctor);
+
+    return buildResponse(HttpStatus.CREATED,
+            "Doctor registered successfully: " + savedDoctor.getName(),
+            savedDoctor);
+}
+
 
 	public ResponseEntity<ResponseStructure<Doctor>> findDoctorById(Integer doctorId) {
 		Doctor doctor = doctordao.findDoctorById(doctorId)
