@@ -10,8 +10,9 @@ Developed with **Copilot AI assistance** for optimized coding and documentation.
 ## 🛠 Tech Stack
 - **Backend:** Java, Spring Boot, Hibernate/JPA, Spring Security (JWT), Swagger/OpenAPI  
 - **Frontend:** React.js, HTML5, CSS3, JavaScript (ES6+)  
-- **Database:** PostgreSQL  
+- **Database:** PostgreSQL (Render Cloud DB)  
 - **Testing:** JUnit 5, Mockito  
+- **Deployment:** Docker, Render (backend), Vercel (frontend)  
 - **Tools:** Maven, Git, Eclipse IDE, Copilot AI  
 
 ---
@@ -35,13 +36,21 @@ Developed with **Copilot AI assistance** for optimized coding and documentation.
 - PostgreSQL
 - Eclipse IDE (for backend)
 
+
 ### Backend Setup (Eclipse)
 1. Open Eclipse → **Import Existing Maven Project** → select `healthtrack-backend`.  
 2. Right‑click the project → **Run As → Spring Boot App** (or Java Application).  
-3. Backend runs on **http://localhost:8081** by default.  
+3. Backend runs on **http://localhost:8081** by default. 
+
 
 ### Frontend Setup
-```bash
 cd healthtrack-frontend
 npm install
 npm start
+
+
+### Live Demo
+```bash
+Frontend (Vercel): https://health-track-management-system.vercel.app
+Backend (Render): https://htms-wdus.onrender.com
+
